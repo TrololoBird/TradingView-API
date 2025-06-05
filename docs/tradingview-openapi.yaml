@@ -1,0 +1,499 @@
+---
+openapi: 3.1.0
+info:
+  title: TradingView API
+  description: |
+    OpenAPI specification for TradingView endpoints used in TradingView-API.
+    Timeframes can be appended to column names using the format `NAME|PERIOD`
+    (e.g. `RSI|240`). Over 3000 column names are supported.
+  version: 1.0.0
+  contact:
+    name: Mathieu Colmon
+    email: mathieu@colmon.fr
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+externalDocs:
+  description: Project repository
+  url: https://github.com/Mathieu2301/TradingView-API
+servers:
+  - url: https://scanner.tradingview.com
+    description: Screener API server
+  - url: https://www.tradingview.com
+    description: Main TradingView site
+paths:
+  "/{market}/scan":
+    post:
+      operationId: scanMarket
+      summary: Perform a market scan
+      description: |
+        Retrieve screener results for a given market. Requires a valid
+        `sessionid` cookie for realtime data access.
+      tags: [Screener Operations]
+      parameters:
+        - $ref: '#/components/parameters/MarketPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScreenerRequest'
+            example:
+              markets: ["america"]
+              symbols:
+                query:
+                  types: []
+                tickers: []
+              options:
+                lang: "en"
+              columns: ["name", "close", "volume"]
+              sort:
+                sortBy: "volume"
+                sortOrder: "desc"
+              range: [5, 25]
+              filter:
+                - left: "market_cap_basic"
+                  operation: "in_range"
+                  right: [1000000, 50000000]
+      responses:
+        "200":
+          description: Successful scan results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScreenerResponse'
+              example:
+                totalCount: 17559
+                data:
+                  - s: "NASDAQ:NVDA"
+                    d: ["NVDA", 116.14, 312636630]
+                  - s: "AMEX:SPY"
+                    d: ["SPY", 542.04, 52331224]
+        "400":
+          description: Invalid request
+        "401":
+          description: Authentication required
+        "500":
+          description: Server error
+      security:
+        - SessionCookieAuth: []
+  /symbol_search:
+    get:
+      summary: Search symbols (v1)
+      servers:
+        - url: https://symbol-search.tradingview.com
+      parameters:
+        - name: text
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: type
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Symbol list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SearchSymbol'
+  /symbol_search/v3:
+    get:
+      summary: Search symbols (v3)
+      servers:
+        - url: https://symbol-search.tradingview.com
+      parameters:
+        - name: exchange
+          in: query
+          schema:
+            type: string
+        - name: text
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: search_type
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Symbol list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  symbols:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SearchSymbol'
+  /pine-facade/list:
+    get:
+      summary: List indicators
+      servers:
+        - url: https://pine-facade.tradingview.com/pine-facade
+      parameters:
+        - name: filter
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Indicator list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/IndicatorSummary'
+  /pubscripts-suggest-json:
+    get:
+      summary: Search public indicators
+      parameters:
+        - name: search
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Indicator search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/IndicatorSummary'
+  /pine-facade/translate/{id}/{version}:
+    get:
+      summary: Get indicator details
+      servers:
+        - url: https://pine-facade.tradingview.com/pine-facade
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: version
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Indicator definition
+          content:
+            application/json:
+              schema:
+                type: object
+  /accounts/signin/:
+    post:
+      summary: User login
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+                remember:
+                  type: string
+            encoding:
+              username:
+                style: form
+              password:
+                style: form
+              remember:
+                style: form
+      responses:
+        '200':
+          description: Login result
+          content:
+            application/json:
+              schema:
+                type: object
+  /chart-token:
+    get:
+      summary: Get chart token
+      parameters:
+        - name: image_url
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: user_id
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+  "/charts-storage/get/layout/{layout}/sources":
+    get:
+      summary: Get chart drawings
+      servers:
+        - url: https://charts-storage.tradingview.com
+      parameters:
+        - name: layout
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: chart_id
+          in: query
+          schema:
+            type: string
+        - name: jwt
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: symbol
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Drawings list
+          content:
+            application/json:
+              schema:
+                type: object
+  /pine_perm/list_users/:
+    post:
+      summary: List users with indicator access
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: order_by
+          in: query
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                pine_id:
+                  type: string
+      responses:
+        '200':
+          description: Authorized users
+          content:
+            application/json:
+              schema:
+                type: object
+  /pine_perm/add/:
+    post:
+      summary: Add user permission
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                pine_id:
+                  type: string
+                username_recip:
+                  type: string
+                expiration:
+                  type: string
+      responses:
+        '200':
+          description: Status
+          content:
+            application/json:
+              schema:
+                type: object
+  /pine_perm/modify_user_expiration/:
+    post:
+      summary: Modify permission expiration
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                pine_id:
+                  type: string
+                username_recip:
+                  type: string
+                expiration:
+                  type: string
+      responses:
+        '200':
+          description: Status
+          content:
+            application/json:
+              schema:
+                type: object
+  /pine_perm/remove/:
+    post:
+      summary: Remove user permission
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                pine_id:
+                  type: string
+                username_recip:
+                  type: string
+      responses:
+        '200':
+          description: Status
+          content:
+            application/json:
+              schema:
+                type: object
+components:
+  parameters:
+    MarketPath:
+      name: market
+      in: path
+      required: true
+      description: Market segment (e.g. `america`, `crypto`, `forex`, `global`)
+      schema:
+        type: string
+        example: america
+  securitySchemes:
+    SessionCookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
+  schemas:
+    ScreenerRequest:
+      type: object
+      properties:
+        markets:
+          type: array
+          items:
+            type: string
+        symbols:
+          type: object
+          properties:
+            query:
+              type: object
+              properties:
+                types:
+                  type: array
+                  items: {}
+            tickers:
+              type: array
+              items:
+                type: string
+        options:
+          type: object
+          properties:
+            lang:
+              type: string
+        columns:
+          type: array
+          items:
+            type: string
+          description: Dynamic column names, e.g. `name`, `close`, `RSI|240`.
+        sort:
+          type: object
+          properties:
+            sortBy:
+              type: string
+            sortOrder:
+              type: string
+              enum: [asc, desc]
+        range:
+          type: array
+          minItems: 2
+          maxItems: 2
+          items:
+            type: integer
+          description: Pagination range `[start, end]`.
+        filter:
+          type: array
+          items:
+            type: object
+            properties:
+              left:
+                type: string
+              operation:
+                type: string
+              right: {}
+            required: [left, operation, right]
+          description: Filter conditions using dynamic fields.
+      additionalProperties: true
+    ScreenerDataItem:
+      type: object
+      properties:
+        s:
+          type: string
+          description: Market symbol
+        d:
+          type: array
+          items: {}
+          description: Values corresponding to requested columns
+      required: [s, d]
+    ScreenerResponse:
+      type: object
+      properties:
+        totalCount:
+          type: integer
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScreenerDataItem'
+      required: [totalCount, data]
+    SearchSymbol:
+      type: object
+      properties:
+        exchange:
+          type: string
+        symbol:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+        prefix:
+          type: string
+      required: [exchange, symbol]
+    IndicatorSummary:
+      type: object
+      properties:
+        scriptIdPart:
+          type: string
+        version:
+          type: string
+        scriptName:
+          type: string
+        imageUrl:
+          type: string
+        access:
+          type: string
+      required: [scriptIdPart, version]

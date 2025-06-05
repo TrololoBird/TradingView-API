@@ -67,13 +67,12 @@ You can find all the examples and snippets in `./examples` folder.
 
 ## API specifications
 
-OpenAPI descriptions for the TradingView endpoints are available in the
-`docs` folder:
+An OpenAPI description covering all endpoints used by this project is
+available in the `docs` folder:
 
-- [`tradingview-screener-openapi.yaml`](docs/tradingview-screener-openapi.yaml)
-  documents the Screener API used for market scans.
-- [`tradingview-misc-openapi.yaml`](docs/tradingview-misc-openapi.yaml)
-  covers symbol search and indicator-related endpoints from `miscRequests.js`.
+- [`tradingview-openapi.yaml`](docs/tradingview-openapi.yaml)
+  describes the screener, symbol search, indicator and account related
+  services in a single file compatible with Custom Actions.
 
 ## Before opening an issue
 

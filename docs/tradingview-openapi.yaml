@@ -194,7 +194,7 @@ paths:
             application/json:
               schema:
                 type: object
-  /accounts/signin/:
+  "/accounts/signin/":
     post:
       summary: User login
       requestBody:
@@ -278,7 +278,7 @@ paths:
             application/json:
               schema:
                 type: object
-  /pine_perm/list_users/:
+  "/pine_perm/list_users/":
     post:
       summary: List users with indicator access
       parameters:
@@ -306,7 +306,7 @@ paths:
             application/json:
               schema:
                 type: object
-  /pine_perm/add/:
+  "/pine_perm/add/":
     post:
       summary: Add user permission
       requestBody:
@@ -329,7 +329,7 @@ paths:
             application/json:
               schema:
                 type: object
-  /pine_perm/modify_user_expiration/:
+  "/pine_perm/modify_user_expiration/":
     post:
       summary: Modify permission expiration
       requestBody:
@@ -352,7 +352,7 @@ paths:
             application/json:
               schema:
                 type: object
-  /pine_perm/remove/:
+  "/pine_perm/remove/":
     post:
       summary: Remove user permission
       requestBody:

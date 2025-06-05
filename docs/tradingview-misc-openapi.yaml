@@ -1,0 +1,164 @@
+---
+openapi: 3.1.0
+info:
+  title: TradingView Misc API
+  description: Additional TradingView endpoints used by TradingView-API.
+  version: 1.0.0
+  contact:
+    name: Mathieu Colmon
+    email: mathieu@colmon.fr
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+servers:
+  - url: https://www.tradingview.com
+    description: Main TradingView site
+paths:
+  /symbol_search:
+    get:
+      summary: Search symbols (v1)
+      servers:
+        - url: https://symbol-search.tradingview.com
+      parameters:
+        - name: text
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: type
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Symbol list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SearchSymbol'
+  /symbol_search/v3:
+    get:
+      summary: Search symbols (v3)
+      servers:
+        - url: https://symbol-search.tradingview.com
+      parameters:
+        - name: exchange
+          in: query
+          schema:
+            type: string
+        - name: text
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: search_type
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Symbol list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  symbols:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SearchSymbol'
+  /pine-facade/list:
+    get:
+      summary: List built-in indicators
+      servers:
+        - url: https://pine-facade.tradingview.com/pine-facade
+      parameters:
+        - name: filter
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Indicator list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/IndicatorSummary'
+  /pubscripts-suggest-json:
+    get:
+      summary: Search public indicators
+      parameters:
+        - name: search
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Indicator search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/IndicatorSummary'
+  /pine-facade/translate/{id}/{version}:
+    get:
+      summary: Get indicator details
+      servers:
+        - url: https://pine-facade.tradingview.com/pine-facade
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: version
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Indicator definition
+          content:
+            application/json:
+              schema:
+                type: object
+components:
+  schemas:
+    SearchSymbol:
+      type: object
+      properties:
+        exchange:
+          type: string
+        symbol:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+        prefix:
+          type: string
+      required: [exchange, symbol]
+    IndicatorSummary:
+      type: object
+      properties:
+        scriptIdPart:
+          type: string
+        version:
+          type: string
+        scriptName:
+          type: string
+        imageUrl:
+          type: string
+        access:
+          type: string
+      required: [scriptIdPart, version]

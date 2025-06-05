@@ -65,6 +65,16 @@ npm i github:Mathieu2301/TradingView-API
 
 You can find all the examples and snippets in `./examples` folder.
 
+## API specifications
+
+OpenAPI descriptions for the TradingView endpoints are available in the
+`docs` folder:
+
+- [`tradingview-screener-openapi.yaml`](docs/tradingview-screener-openapi.yaml)
+  documents the Screener API used for market scans.
+- [`tradingview-misc-openapi.yaml`](docs/tradingview-misc-openapi.yaml)
+  covers symbol search and indicator-related endpoints from `miscRequests.js`.
+
 ## Before opening an issue
 
 Please look at examples and previously resolved issues before opening a new one. I can't help everyone (especially for questions that are not library related but JavaScript related). Thank you for your understanding.

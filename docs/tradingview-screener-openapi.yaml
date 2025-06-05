@@ -1,0 +1,177 @@
+---
+openapi: 3.1.0
+info:
+  title: TradingView Screener API
+  description: |
+    OpenAPI specification for the TradingView Screener endpoint used in
+    TradingView-Screener projects. The API returns market data based on
+    dynamic columns and filters. Timeframes can be appended to column names
+    using the format `NAME|PERIOD` (e.g. `RSI|240`). Over 3000 column names
+    are supported.
+  version: 1.0.0
+  contact:
+    name: Mathieu Colmon
+    email: mathieu@colmon.fr
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+externalDocs:
+  description: Project repository
+  url: https://github.com/Mathieu2301/TradingView-API
+servers:
+  - url: https://scanner.tradingview.com
+    description: Main TradingView Screener API server
+tags:
+  - name: Screener Operations
+    description: Screener operations
+paths:
+  "/{market}/scan":
+    post:
+      operationId: scanMarket
+      summary: Perform a market scan
+      description: |
+        Retrieve screener results for a given market. Requires a valid
+        `sessionid` cookie for realtime data access.
+      tags: [Screener Operations]
+      parameters:
+        - $ref: '#/components/parameters/MarketPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScreenerRequest'
+            example:
+              markets: ["america"]
+              symbols:
+                query:
+                  types: []
+                tickers: []
+              options:
+                lang: "en"
+              columns: ["name", "close", "volume"]
+              sort:
+                sortBy: "volume"
+                sortOrder: "desc"
+              range: [5, 25]
+              filter:
+                - left: "market_cap_basic"
+                  operation: "in_range"
+                  right: [1000000, 50000000]
+      responses:
+        "200":
+          description: Successful scan results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScreenerResponse'
+              example:
+                totalCount: 17559
+                data:
+                  - s: "NASDAQ:NVDA"
+                    d: ["NVDA", 116.14, 312636630]
+                  - s: "AMEX:SPY"
+                    d: ["SPY", 542.04, 52331224]
+        "400":
+          description: Invalid request
+        "401":
+          description: Authentication required
+        "500":
+          description: Server error
+      security:
+        - SessionCookieAuth: []
+components:
+  parameters:
+    MarketPath:
+      name: market
+      in: path
+      required: true
+      description: Market segment (e.g. `america`, `crypto`, `forex`, `global`)
+      schema:
+        type: string
+        example: america
+  securitySchemes:
+    SessionCookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
+  schemas:
+    ScreenerRequest:
+      type: object
+      properties:
+        markets:
+          type: array
+          items:
+            type: string
+        symbols:
+          type: object
+          properties:
+            query:
+              type: object
+              properties:
+                types:
+                  type: array
+                  items: {}
+            tickers:
+              type: array
+              items:
+                type: string
+        options:
+          type: object
+          properties:
+            lang:
+              type: string
+        columns:
+          type: array
+          items:
+            type: string
+          description: Dynamic column names, e.g. `name`, `close`, `RSI|240`.
+        sort:
+          type: object
+          properties:
+            sortBy:
+              type: string
+            sortOrder:
+              type: string
+              enum: [asc, desc]
+        range:
+          type: array
+          minItems: 2
+          maxItems: 2
+          items:
+            type: integer
+          description: Pagination range `[start, end]`.
+        filter:
+          type: array
+          items:
+            type: object
+            properties:
+              left:
+                type: string
+              operation:
+                type: string
+              right: {}
+            required: [left, operation, right]
+          description: Filter conditions using dynamic fields.
+      additionalProperties: true
+    ScreenerDataItem:
+      type: object
+      properties:
+        s:
+          type: string
+          description: Market symbol
+        d:
+          type: array
+          items: {}
+          description: Values corresponding to requested columns
+      required: [s, d]
+    ScreenerResponse:
+      type: object
+      properties:
+        totalCount:
+          type: integer
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScreenerDataItem'
+      required: [totalCount, data]

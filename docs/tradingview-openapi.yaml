@@ -1,0 +1,17 @@
+openapi: 3.0.0
+info:
+  title: TradingView API
+  version: 1.0.0
+paths:
+  /accounts/signin/:
+    post:
+      summary: Sign in
+      responses:
+        '200':
+          description: OK
+  /pine_perm/list_users/:
+    post:
+      summary: List pine permission users
+      responses:
+        '200':
+          description: OK

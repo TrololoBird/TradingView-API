@@ -409,6 +409,7 @@ components:
               type: array
               items:
                 type: string
+              description: Full symbol IDs like `EXCHANGE:SYMBOL` (regex `^[A-Z]+:[A-Z0-9._-]+$`).
         options:
           type: object
           properties:
@@ -418,7 +419,10 @@ components:
           type: array
           items:
             type: string
-          description: Dynamic column names, e.g. `name`, `close`, `RSI|240`.
+          description: |
+            Dynamic column names. Append a timeframe with `|PERIOD` as in `RSI|240`.
+            Valid PERIOD values: `1`, `5`, `15`, `60`, `240`, `1D`, `1W`, `1M`.
+            Daily-only indicators ignore the suffix; others support these periods.
         sort:
           type: object
           properties:
